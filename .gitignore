@@ -1,0 +1,11 @@
+# Source data: download with scripts/get_data.py (see data/README.md)
+data/raw/
+
+# Database files
+*.mdf
+*.ldf
+*.bak
+
+# Python
+__pycache__/
+.venv/

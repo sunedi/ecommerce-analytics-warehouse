@@ -1,0 +1,3 @@
+# BULK INSERT reads data/source_manifest.csv expecting LF line endings,
+# so stop Git converting CSV files to CRLF on Windows checkouts
+*.csv text eol=lf
