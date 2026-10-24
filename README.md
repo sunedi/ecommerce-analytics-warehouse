@@ -15,8 +15,8 @@ A SQL Server data warehouse built from about 100,000 real orders on Olist, a Bra
 | Step | Work | Status |
 |---|---|---|
 | 1 | Setup, raw load and load checks | Done |
-| 2 | Staging and data profiling | Next |
-| 3 | Star schema (dimensions and facts) | Planned |
+| 2 | Staging and data profiling | Done |
+| 3 | Star schema (dimensions and facts) | Next |
 | 4 | Business analysis queries | Planned |
 | 5 | Reconciliation controls and dashboard | Planned |
 
@@ -30,7 +30,20 @@ A SQL Server data warehouse built from about 100,000 real orders on Olist, a Bra
 | `mart` | Summary tables for reporting |
 | `audit` | Load history, and the expected record count and checksum of every source file |
 
-Every load is checked against [`data/source_manifest.csv`](data/source_manifest.csv). That file records how many records each source file holds, counted independently with Python's CSV parser. If a raw table's row count doesn't match, the build stops.
+Each layer is tested before the next one is built, and the build stops at the first failure:
+
+- **Raw:** every table's row count must match [`data/source_manifest.csv`](data/source_manifest.csv), which counts each file's records independently with Python's CSV parser.
+- **Staging:** every table must have the same number of rows as its raw table. No value may be lost when text is converted to numbers and dates, and every money column must add up to the same total. Statuses, payment types, scores, states, IDs and ZIP prefixes must hold only accepted values.
+
+## Data quality
+
+The staging tables were profiled for missing values, duplicate keys, orphaned rows, out-of-order timestamps and implausible values. The full results are in [`docs/data_profile.md`](docs/data_profile.md), and how each issue is handled is in [`docs/assumptions.md`](docs/assumptions.md). Highlights:
+
+- `customer_id` is created fresh for every order: 99,441 IDs belong to 96,096 people. Repeat customers can only be found through `customer_unique_id`, and 3.1% of customers ordered more than once.
+- 789 reviews are attached to several orders, and 547 orders have several reviews, 202 of them with conflicting scores.
+- Geolocation lists each ZIP prefix about 53 times, with inconsistent city spellings and 47 points outside Brazil. Joining it directly would multiply rows.
+- Payments match items plus freight to within R$0.01 for 98,362 of 98,665 orders. Most of the exceptions were paid in instalments.
+- Order volumes are complete from January 2017 to August 2018. The months on either side hold only 349 orders in total.
 
 ## How to run
 
@@ -53,6 +66,8 @@ The build can be rerun at any time. It replaces the data rather than duplicating
 
 To run the scripts in SSMS instead, open them in the order listed in [`scripts/build.ps1`](scripts/build.ps1). In `sql/01_raw/03_run_load.sql`, replace `$(DataDir)` with the full path to the `data` folder.
 
+The queries in `profiling/` are not part of the build. Open them in SSMS after a build to explore the data.
+
 ## Repository structure
 
 ```text
@@ -66,8 +81,14 @@ scripts/
 sql/
   00_setup/              database, schemas and audit tables
   01_raw/                raw tables and the load procedure
+  02_staging/            typed staging tables, their load procedure and a column profiler
 tests/
   01_raw_load_checks.sql row counts reconciled to the source files
+  02_staging_checks.sql  staging reconciled to raw, plus accepted values and formats
+profiling/               data profiling queries (keys, relationships, timestamps, values, customers)
+docs/
+  data_profile.md        profiling results
+  assumptions.md         how each data issue is handled, and the business definitions
 ```
 
 ## Data source
