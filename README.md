@@ -10,6 +10,17 @@ A SQL Server data warehouse built from about 100,000 real orders on Olist, a Bra
 - Which product categories sell most, and which receive the worst reviews?
 - Do payments reconcile to item prices plus freight for every order?
 
+## Key findings
+
+Full results, tables and recommendations are in [`results/executive_summary.md`](results/executive_summary.md).
+
+1. **Growth came from more orders, not bigger ones.** January–August revenue grew 141% from 2017 to 2018. Orders grew 140%, while average order value stayed at about R$136.
+2. **Late delivery is the strongest warning sign for a bad review.** Orders delivered 8+ days late average 1.7 stars, and 70% of them get 1 star. Orders delivered more than a week early average 4.3 stars.
+3. **Almost no one comes back.** 2.0% of customers ordered again within 180 days. Better first orders go with slightly higher return rates, but the confidence intervals overlap, so that link isn't established.
+4. **Lateness is mostly platform-wide.** The worst tenth of sellers is late on 15.5% of orders, against 0.9% for the best tenth, but it causes only 15% of all late orders. Remote states wait 18–26 days, against 8.7 in São Paulo.
+5. **Office furniture disappoints even when it arrives on time,** scoring 0.53 below the average for on-time orders.
+6. **98.9% of orders' payments reconcile to within R$0.01.** R$162,592 was paid on 775 unfulfilled orders with no refund records, and overpayments rise with the number of instalments, which fits card interest.
+
 ## Project status
 
 | Step | Work | Status |
@@ -17,8 +28,8 @@ A SQL Server data warehouse built from about 100,000 real orders on Olist, a Bra
 | 1 | Setup, raw load and load checks | Done |
 | 2 | Staging and data profiling | Done |
 | 3 | Star schema (dimensions and facts) | Done |
-| 4 | Business analysis queries | Next |
-| 5 | Reconciliation controls and dashboard | Planned |
+| 4 | Business analysis queries | Done |
+| 5 | Reconciliation controls and dashboard | Next |
 
 ## Architecture
 
@@ -93,7 +104,7 @@ The build can be rerun at any time. It replaces the data rather than duplicating
 
 To run the scripts in SSMS instead, open them in the order listed in [`scripts/build.ps1`](scripts/build.ps1). In `sql/01_raw/03_run_load.sql`, replace `$(DataDir)` with the full path to the `data` folder.
 
-The queries in `profiling/` are not part of the build. Open them in SSMS after a build to explore the data.
+The queries in `profiling/` and `queries/` are not part of the build. Open them in SSMS after a build to explore the data or reproduce the findings. Each analysis query runs in a few seconds.
 
 ## Repository structure
 
@@ -115,10 +126,13 @@ tests/
   02_staging_checks.sql  staging reconciled to raw, plus accepted values and formats
   03_warehouse_checks.sql facts reconciled to staging, customer history, business rules
 profiling/               data profiling queries (keys, relationships, timestamps, values, customers)
+queries/                 one analysis query per business question
 docs/
   data_profile.md        profiling results
   assumptions.md         how each data issue is handled, and the business definitions
   data_model.md          star schema: diagram, grains, keys, measures
+results/
+  executive_summary.md   findings, recommendations and limitations
 ```
 
 ## Data source
