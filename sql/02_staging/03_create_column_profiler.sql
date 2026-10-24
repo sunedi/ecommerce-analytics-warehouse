@@ -43,6 +43,7 @@ BEGIN
 
     -- Build one INSERT ... SELECT per column and join them into a single batch.
     -- QUOTENAME(name) makes a safe [identifier]; QUOTENAME(name, '''') makes a safe 'string'.
+    -- MIN and MAX don't accept BIT (flag) columns, so those are converted to INT first.
     SELECT @sql = STRING_AGG(CAST(N'
         INSERT INTO audit.column_profile
             (schema_name, table_name, column_name, column_id, data_type,
@@ -56,8 +57,8 @@ BEGIN
             COUNT_BIG(*),
             COUNT_BIG(*) - COUNT_BIG(' + QUOTENAME(c.name) + N'),
             COUNT_BIG(DISTINCT ' + QUOTENAME(c.name) + N'),
-            CAST(MIN(' + QUOTENAME(c.name) + N') AS NVARCHAR(4000)),
-            CAST(MAX(' + QUOTENAME(c.name) + N') AS NVARCHAR(4000)),
+            CAST(MIN(' + v.min_max_expression + N') AS NVARCHAR(4000)),
+            CAST(MAX(' + v.min_max_expression + N') AS NVARCHAR(4000)),
             SYSDATETIME()
         FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N';' AS NVARCHAR(MAX)), N'')
         WITHIN GROUP (ORDER BY t.name, c.column_id)
@@ -68,6 +69,9 @@ BEGIN
         ON c.object_id = t.object_id
     INNER JOIN sys.types AS ty
         ON ty.user_type_id = c.user_type_id
+    CROSS APPLY (
+        SELECT CASE WHEN ty.name = N'bit' THEN N'CAST(' + QUOTENAME(c.name) + N' AS INT)' ELSE QUOTENAME(c.name) END
+    ) AS v (min_max_expression)
     WHERE s.name = @schema_name;
 
     IF @sql IS NULL

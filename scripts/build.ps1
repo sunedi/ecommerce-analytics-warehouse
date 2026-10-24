@@ -35,7 +35,11 @@ $scripts = @(
     'sql\02_staging\02_create_load_procedure.sql',
     'sql\02_staging\03_create_column_profiler.sql',
     'sql\02_staging\04_run_load.sql',
-    'tests\02_staging_checks.sql'
+    'tests\02_staging_checks.sql',
+    'sql\03_warehouse\01_create_tables.sql',
+    'sql\03_warehouse\02_create_load_procedure.sql',
+    'sql\03_warehouse\03_run_load.sql',
+    'tests\03_warehouse_checks.sql'
 )
 
 foreach ($script in $scripts) {

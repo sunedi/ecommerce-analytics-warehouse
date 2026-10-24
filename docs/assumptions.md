@@ -20,7 +20,7 @@ The months before and after this range hold 349 orders between them, against mor
 `customer_id` is created fresh for every order, so it can't identify repeat customers. Every customer count and repeat-purchase metric uses `customer_unique_id`.
 
 **5. Customer location is tracked over time (slowly changing dimension, Type 2).**
-- 250 repeat customers ordered from different ZIP prefixes (39 from different states).
+- 250 repeat customers ordered from different ZIP prefixes (39 from different states), and 2 more changed only the spelling of their city. That makes 252 customers with more than one version.
 - `dim_customer` keeps one row per customer per location, with the dates each location was valid.
 - Orders link to the row valid at purchase time, so regional analysis uses where the customer actually was.
 
@@ -38,7 +38,7 @@ The months before and after this range hold 349 orders between them, against mor
 - `portateis_cozinha_e_preparadores_de_alimentos` becomes `portable_kitchen_and_food_preparers`.
 
 **9. One location per ZIP prefix.**
-- Geolocation is reduced to one row per prefix: the average latitude and longitude of the points inside Brazil, and the most common state.
+- Geolocation is reduced to one row per prefix: the average latitude and longitude of the points inside Brazil. State comes from the customer or seller record, which is complete and validated, not from geolocation.
 - 5 prefixes with no point inside Brazil, and the 278 customers and 7 sellers whose prefixes are missing from geolocation, get no coordinates. Their state is still known from the customer or seller record.
 - City names are not used for analysis because spellings are inconsistent. State is clean and validated.
 
