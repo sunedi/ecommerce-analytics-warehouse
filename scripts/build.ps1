@@ -39,7 +39,15 @@ $scripts = @(
     'sql\03_warehouse\01_create_tables.sql',
     'sql\03_warehouse\02_create_load_procedure.sql',
     'sql\03_warehouse\03_run_load.sql',
-    'tests\03_warehouse_checks.sql'
+    'tests\03_warehouse_checks.sql',
+    'sql\04_marts\01_create_tables.sql',
+    'sql\04_marts\02_create_load_procedure.sql',
+    'sql\04_marts\03_run_load.sql',
+    'tests\04_mart_checks.sql',
+    'sql\05_controls\01_create_tables.sql',
+    'sql\05_controls\02_create_procedure.sql',
+    'sql\05_controls\03_run_controls.sql',
+    'tests\05_control_checks.sql'
 )
 
 foreach ($script in $scripts) {

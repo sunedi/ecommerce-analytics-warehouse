@@ -90,6 +90,7 @@ These categories are late about as often as the average order. Their low scores 
 | Items, but no payment recorded | 1 | -143.46 |
 
 - **Paid but no items:** 603 orders marked unavailable (R$124,339) and 164 cancelled (R$37,338). Customers paid for orders that were never fulfilled.
+- **Every exception is tracked** in an exception register (`audit.payment_exception`) with a reason code and severity, and the register is updated on every build. See [`docs/controls.md`](../docs/controls.md).
 - **Overpayments rise with instalments,** which fits card interest being included in the payment value:
 
 | Instalments | Overpaid orders | Overpaid by |

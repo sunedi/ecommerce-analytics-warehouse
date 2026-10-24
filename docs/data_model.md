@@ -139,6 +139,39 @@ Each decision in [`assumptions.md`](assumptions.md) is applied in one place and 
 | Late delivery | `fct_order` | Delivered on a later date than the estimated delivery date |
 | Review score | `fct_order` | Score of the most recently answered review |
 
+## Marts
+
+Summary tables in the `mart` schema, built from `dw` for dashboards ([`sql/04_marts`](../sql/04_marts)). Each one reconciles to the warehouse (`tests/04_mart_checks.sql`).
+
+| Mart | One row per | Rows | Use |
+|---|---|---:|---|
+| `monthly_performance` | Purchase month | 25 | Trends: revenue, orders, average order value, new customers, delivery, reviews |
+| `state_monthly` | Month and customer state | 556 | Map and regional comparison; includes state name and region |
+| `category_monthly` | Month and product category | 1,273 | Category ranking and review scores, filterable by month |
+| `seller_performance` | Seller | 3,095 | Seller league table, late-rate deciles |
+| `customer_summary` | Customer (`customer_unique_id`) | 96,096 | Repeat purchase, time to second order, first-order experience |
+| `delivery_review` | Arrival bucket (early to 8+ days late) | 7 | How lateness affects review scores |
+
+### Building measures from marts
+
+Marts store **sums and counts**, so averages and percentages stay correct at any level of a dashboard:
+
+| Measure | Formula |
+|---|---|
+| Average order value | `SUM(revenue) / SUM(delivered_orders)` |
+| Freight share | `SUM(freight) / (SUM(revenue) + SUM(freight))` |
+| Late rate | `SUM(late_orders) / SUM(delivered_with_date)` |
+| Average delivery days | `SUM(delivery_days_sum) / SUM(delivered_with_date)` |
+| Average review score | `SUM(review_score_sum) / SUM(reviewed_orders)` |
+| On-time review score | `SUM(on_time_review_score_sum) / SUM(on_time_reviewed_orders)` |
+
+Averaging a ratio column across rows gives the wrong answer: a month with 750 orders would count as much as one with 7,000. Ratio columns are provided only where a row is shown on its own (one month, seller, customer or bucket).
+
+**Columns that can't be summed across rows:**
+- `monthly_performance.customers`: someone who orders in two months counts in both. `new_customers` *can* be summed.
+- `category_monthly.orders`: an order with items from two categories counts in both. Total orders come from `monthly_performance`.
+- `seller_performance.delivered_orders`: the same reason, for multi-seller orders.
+
 ## Querying rules
 
 - **Revenue:** filter `is_revenue = 1`.

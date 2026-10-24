@@ -29,7 +29,7 @@ Full results, tables and recommendations are in [`results/executive_summary.md`]
 | 2 | Staging and data profiling | Done |
 | 3 | Star schema (dimensions and facts) | Done |
 | 4 | Business analysis queries | Done |
-| 5 | Reconciliation controls and dashboard | Next |
+| 5 | Reconciliation controls and dashboard | Marts and controls done; dashboard next |
 
 ## Architecture
 
@@ -38,14 +38,18 @@ Full results, tables and recommendations are in [`results/executive_summary.md`]
 | `raw` | The source CSV files loaded exactly as they are, with every column stored as text |
 | `stg` | Cleaned, typed and renamed copies of the raw tables |
 | `dw` | Star schema: dimensions and facts with documented grains |
-| `mart` | Summary tables for reporting |
-| `audit` | Load history, and the expected record count and checksum of every source file |
+| `mart` | Summary tables for dashboards, storing sums and counts so every measure aggregates correctly |
+| `audit` | Load history, source file manifest, reconciliation control results and the payment exception register |
 
 Each layer is tested before the next one is built, and the build stops at the first failure:
 
 - **Raw:** every table's row count must match [`data/source_manifest.csv`](data/source_manifest.csv), which counts each file's records independently with Python's CSV parser.
 - **Staging:** every table must have the same number of rows as its raw table. No value may be lost when text is converted to numbers and dates, and every money column must add up to the same total. Statuses, payment types, scores, states, IDs and ZIP prefixes must hold only accepted values.
 - **Warehouse:** every fact must have as many rows as its staging source. Order-level totals must equal the sums of the item and payment rows, which proves no join repeated a row. The customer history must have one current version per customer, with no gaps or overlaps, and every order must link to the location it was placed from. All foreign keys must be enforced and trusted.
+- **Marts:** every mart total (revenue, orders, items, customers, review scores) must equal the warehouse total it summarises.
+- **Controls:** after every build, six measures are compared across every layer, from the source file to the marts, and the results are kept in `audit`. A register of payment exceptions (orders whose payments don't match items plus freight) is updated: new exceptions are opened and ones that disappear are resolved. See [`docs/controls.md`](docs/controls.md).
+
+The full build runs 119 checks in under a minute.
 
 ## Data model
 
@@ -121,16 +125,21 @@ sql/
   01_raw/                raw tables and the load procedure
   02_staging/            typed staging tables, their load procedure and a column profiler
   03_warehouse/          star schema tables and their load procedure
+  04_marts/              dashboard summary tables and their load procedure
+  05_controls/           reconciliation controls and the payment exception register
 tests/
   01_raw_load_checks.sql row counts reconciled to the source files
   02_staging_checks.sql  staging reconciled to raw, plus accepted values and formats
   03_warehouse_checks.sql facts reconciled to staging, customer history, business rules
+  04_mart_checks.sql     marts reconciled to the warehouse
+  05_control_checks.sql  latest control run passed; exception register is current
 profiling/               data profiling queries (keys, relationships, timestamps, values, customers)
 queries/                 one analysis query per business question
 docs/
   data_profile.md        profiling results
   assumptions.md         how each data issue is handled, and the business definitions
-  data_model.md          star schema: diagram, grains, keys, measures
+  data_model.md          star schema and marts: diagram, grains, keys, measures
+  controls.md            reconciliation controls and exception lifecycle
 results/
   executive_summary.md   findings, recommendations and limitations
 ```
