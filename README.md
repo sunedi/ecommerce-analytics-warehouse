@@ -134,7 +134,7 @@ tests/
   04_mart_checks.sql     marts reconciled to the warehouse
   05_control_checks.sql  latest control run passed; exception register is current
 profiling/               data profiling queries (keys, relationships, timestamps, values, customers)
-queries/                 one analysis query per business question
+queries/                 one analysis query per business question, plus reference figures for the dashboard
 docs/
   data_profile.md        profiling results
   assumptions.md         how each data issue is handled, and the business definitions
