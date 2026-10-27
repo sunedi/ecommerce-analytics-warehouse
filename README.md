@@ -21,6 +21,16 @@ Full results, tables and recommendations are in [`results/executive_summary.md`]
 5. **Office furniture disappoints even when it arrives on time,** scoring 0.53 below the average for on-time orders.
 6. **98.9% of orders' payments reconcile to within R$0.01.** R$162,592 was paid on 775 unfulfilled orders with no refund records, and overpayments rise with the number of instalments, which fits card interest.
 
+## Dashboard
+
+A Power BI report ([`dashboard/olist_dashboard.pbix`](dashboard/olist_dashboard.pbix)) with five pages: Executive, Delivery, Categories, Sellers and Customers. It reads only from the tested marts. Every measure divides sums by counts rather than averaging percentages, and every headline figure was checked against [`queries/06_dashboard_reference.sql`](queries/06_dashboard_reference.sql). The Executive page has a year filter, so each year can be viewed on its own.
+
+![Executive page](results/dashboard_executive.png)
+
+![Delivery page](results/dashboard_delivery.png)
+
+Other pages: [Categories](results/dashboard_categories.png) · [Sellers](results/dashboard_sellers.png) · [Customers](results/dashboard_customers.png)
+
 ## Project status
 
 | Step | Work | Status |
@@ -29,7 +39,7 @@ Full results, tables and recommendations are in [`results/executive_summary.md`]
 | 2 | Staging and data profiling | Done |
 | 3 | Star schema (dimensions and facts) | Done |
 | 4 | Business analysis queries | Done |
-| 5 | Reconciliation controls and dashboard | Marts and controls done; dashboard next |
+| 5 | Reconciliation controls and dashboard | Done |
 
 ## Architecture
 
@@ -142,6 +152,9 @@ docs/
   controls.md            reconciliation controls and exception lifecycle
 results/
   executive_summary.md   findings, recommendations and limitations
+  dashboard_*.png        screenshots of each dashboard page
+dashboard/
+  olist_dashboard.pbix   Power BI report built on the marts
 ```
 
 ## Data source
